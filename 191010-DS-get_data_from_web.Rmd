@@ -7,6 +7,8 @@ output: html_document
 
 
 ```{r}
+## use: git remote add origin https://github.com/bensoltoff/myrepo.git to connect to github link
+
 library(tidyverse)
 library(rvest)
 library(httr)
@@ -28,10 +30,12 @@ drug_use_xml %>%
 ## get only one table
 
 ```{r}
-(drug_use_xml %>% html_nodes(css = "table")) %>%
-    .[[1]] %>% ## . everything before the last pipe %>% , thats why we use ( )
-    html_table() %>% 
-    slice(-1) ## remove the repeated note
+table_dd =
+  (drug_use_xml %>% html_nodes(css = "table")) %>% 
+  .[[1]] %>% ## the first element(table 1) to tidy
+  html_table() %>% 
+  slice(-1) # remove the first row of the table
+
 ## Normaly, this involves more steps to get a clear table, figure out what to remove
 ```
 
@@ -44,24 +48,32 @@ nyc_cost =
 ```
 
 # select gadget
+
 ## get hp data
 
 
 ## select some elements
 ```{r}
-
 hpsaga_title = 
   read_html("https://www.imdb.com/list/ls000630791/") %>% 
     html_nodes(".lister-item-header a") %>% 
     html_text()
+
+hpsaga_director = 
+  read_html("https://www.imdb.com/list/ls000630791/") %>% 
+  html_nodes(".text-muted a:nth-child(1)") %>% 
+  html_text()
+
 hpsaga_money = 
   read_html("https://www.imdb.com/list/ls000630791/") %>% 
-    html_nodes(":nth-child(7) span:nth-child(5)") %>% 
+    html_nodes(".text-small:nth-child(7) span:nth-child(5)") %>% 
     html_text()
+
 hpsaga_df = 
   tibble(
-    title = hpsaga_html,   ##???
-    money = hpsaga_money,)
+    title = hpsaga_title,
+    director = hpsaga_director,
+    money = hpsaga_money)
 
 
 ## to find the right css selector, google may be works better than gadget
@@ -99,11 +111,17 @@ reviews = tibble(
 
 ```{r}
 nyc_water = 
-  GET("https://data.cityofnewyork.us/resource/waf7-5gvc.csv") %>% 
+  GET("https://data.cityofnewyork.us/resource/waf7-5gvc.csv") %>% ## get link from class copied
+  content()
+
+nyc_water_2 = 
+  GET("https://data.cityofnewyork.us/resource/ia2d-e54m.csv") %>%  ## get link from API copied
   content()
 
 ```
 
+
+* also could get json data, but need to transfer
 
 ```{r}
 nyc_water = 
@@ -116,6 +134,7 @@ nyc_water =
 ```
 
 ```{r}
+
 brfss_smart2010 = 
   GET("https://data.cdc.gov/api/views/acme-vg9e/rows.csv?accessType=DOWNLOAD") %>% 
   content("parsed")
